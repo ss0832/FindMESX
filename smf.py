@@ -58,8 +58,10 @@ def parser():
     parser.add_argument("-ns", "--NSTEP",  type=int, default='300', help='iter. number')
     parser.add_argument("-core", "--N_THREAD",  type=int, default='8', help='threads')
     parser.add_argument("-mem", "--SET_MEMORY",  type=str, default='1GB', help='use mem(ex. 1GB)')
+    parser.add_argument("-a", "--alpha",  type=str, default='0.0001', help='Constant of model function (SMF) for finding MESX (unit hartree)')
     parser.add_argument("-d", "--DELTA",  type=str, default='x', help='move step')
     parser.add_argument("-opt", "--opt_method", nargs="*", type=str, default=["AdaBelief"], help='optimization method for QM calclation (default: AdaBelief) (mehod_list:(steepest descent method) RADAM, AdaBelief, AdaDiff, EVE, AdamW, Adam, Adadelta, Adafactor, Prodigy, NAdam, AdaMax, FIRE (quasi-Newton method) mBFGS, mFSB, RFO_mBFGS, RFO_mFSB, FSB, RFO_FSB, BFGS, RFO_BFGS, TRM_FSB, TRM_BFGS) (notice you can combine two methods, steepest descent family and quasi-Newton method family. The later method is used if gradient is small enough. [[steepest descent] [quasi-Newton method]]) (ex.) [opt_method]')
+    
     args = parser.parse_args()
     return args
     
@@ -1306,6 +1308,8 @@ class FindMESX:
         self.RMS_FORCE_THRESHOLD = 0.0002 #
         self.MAX_DISPLACEMENT_THRESHOLD = 0.0015 # 
         self.RMS_DISPLACEMENT_THRESHOLD = 0.0010 #
+        self.ALPHA = float(args.alpha)
+        
         
         self.args = args #
 
@@ -1573,7 +1577,7 @@ class FindMESX:
         return e, g, input_data_for_display, finish_frag
 
     def calc_biaspot(self, rea_e, pro_e, rea_g, pro_g, rea_geom_num_list, pro_geom_num_list, element_list,  pre_rea_g, pre_pro_g, pre_rea_geom, pre_pro_geom, iter, initial_rea_geom_num_list, initial_pro_geom_num_list):#calclate bais optential for SMF
-        alpha = 0.0001
+        alpha = self.ALPHA
         smf_e = 0.5 * (pro_e + rea_e) + (pro_e - rea_e) ** 2 / alpha 
 
         new_pro_g = 0.5 * pro_g + 2.0 * (pro_e - rea_e) * pro_g / alpha
